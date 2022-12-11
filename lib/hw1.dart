@@ -17,23 +17,24 @@ class ExpressionParser {
 
   ExpressionParser({required this.recieved});
 
-  int parse() {
+  int parseRecieved() {
     for (var char in recieved.runes) {
-      rec.addPair(toUnit(char));
+      rec.addPair(_toUnit(char));
     }
     return 5;
   }
 
-  double solveExpr(Map map, Record<ExpressionUnits, int> rec) {
+  Pair<double, ExpressionUnits> solveExpr(
+      Map map, Record<ExpressionUnits, int> rec) {
     Record<double, ExpressionUnits> values = Record();
     var current_position = 0;
     if (rec.contains_after(ExpressionUnits.closeBrace, current_position) !=
             null &&
         rec.contains_after(ExpressionUnits.openBrace, current_position) !=
             null) {
-      var start =
+      int? start =
           rec.contains_after(ExpressionUnits.openBrace, current_position);
-      var end =
+      int? end =
           rec.contains_after(ExpressionUnits.closeBrace, current_position);
       var sub_rec = rec.get_sub_rec(start!, end!);
       solveExpr(map, sub_rec);
@@ -45,12 +46,22 @@ class ExpressionParser {
             ExpressionUnits.closeBrace, current_position) !=
         null) {
       throw "Expression is incorrect! Doesn't have opening brace!!";
+    } else {
+      values = parseExpr(rec);
     }
-
-    return 1.0;
+    var value = calculate(values);
+    return Pair(key: value, value: ExpressionUnits.none);
   }
 
-  Pair<ExpressionUnits, int> toUnit(int c) {
+  Record<double, ExpressionUnits> parseExpr(Record<ExpressionUnits, int> rec) {
+    return Record();
+  }
+
+  double calculate(Record<double, ExpressionUnits> values) {
+    return 0.0;
+  }
+
+  Pair<ExpressionUnits, int> _toUnit(int c) {
     var char = String.fromCharCode(c);
     switch (char) {
       case '+':
