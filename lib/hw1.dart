@@ -19,13 +19,34 @@ class ExpressionParser {
 
   int parse() {
     for (var char in recieved.runes) {
-      var unit = toUnit(char);
-      rec.addPair(unit);
+      rec.addPair(toUnit(char));
     }
     return 5;
   }
 
-  double solveExpr(Map map) {
+  double solveExpr(Map map, Record<ExpressionUnits, int> rec) {
+    Record<double, ExpressionUnits> values = Record();
+    var current_position = 0;
+    if (rec.contains_after(ExpressionUnits.closeBrace, current_position) !=
+            null &&
+        rec.contains_after(ExpressionUnits.openBrace, current_position) !=
+            null) {
+      var start =
+          rec.contains_after(ExpressionUnits.openBrace, current_position);
+      var end =
+          rec.contains_after(ExpressionUnits.closeBrace, current_position);
+      var sub_rec = rec.get_sub_rec(start!, end!);
+      solveExpr(map, sub_rec);
+    } else if (rec.contains_after(
+            ExpressionUnits.closeBrace, current_position) !=
+        null) {
+      throw "Expression is incorrect! Doesn't have closing brace!!";
+    } else if (rec.contains_after(
+            ExpressionUnits.closeBrace, current_position) !=
+        null) {
+      throw "Expression is incorrect! Doesn't have opening brace!!";
+    }
+
     return 1.0;
   }
 
@@ -71,6 +92,28 @@ class Record<K, V> {
   void addPair(Pair<K, V> pair) {
     record.add(pair);
   }
+
+  int? contains_after(K elem, int curr_pos) {
+    int index = 0;
+    for (var p in record) {
+      if (p.key == elem && index > curr_pos) {
+        return index;
+      }
+      index++;
+    }
+    return null;
+  }
+
+  Record<K, V> get_sub_rec(int start, int end) {
+    Record<K, V> rec = Record();
+    int index = 0;
+    for (var p in record) {
+      if (index >= start && index <= end) {
+        rec.addPair(p);
+      }
+    }
+    return rec;
+  }
 }
 
 class Pair<K, V> {
@@ -78,15 +121,4 @@ class Pair<K, V> {
   final V value;
 
   Pair({required this.key, required this.value});
-}
-
-class Animal {
-  String _firstName = '';
-  Animal();
-  static int chromosoma = 43;
-
-  int get nameLen => _firstName.length;
-  set name(String str) => _firstName = str;
-
-  void sound() {}
 }
