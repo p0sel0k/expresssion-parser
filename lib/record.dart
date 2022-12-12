@@ -14,7 +14,7 @@ class Record<K, V> {
   int? contains_after(K elem, int curr_pos) {
     int index = 0;
     for (var p in record) {
-      if (p.key == elem && index > curr_pos) {
+      if (p.key == elem && index >= curr_pos) {
         return index;
       }
       index++;
@@ -31,6 +31,14 @@ class Record<K, V> {
       }
     }
     return rec;
+  }
+
+  Pair<K, V> get(int index) {
+    return record[index];
+  }
+
+  int get len {
+    return record.length;
   }
 }
 
