@@ -23,7 +23,8 @@ class ExpressionParser {
 
   double result() {
     var rec = _parseRecieved(expression);
-    return _solveExpr(variables, rec, 0).key;
+    return 0.0;
+    // _solveExpr(variables, rec, 0).key;
   }
 
   Record<ExpressionUnits, int> _parseRecieved(String recieved) {
@@ -35,47 +36,82 @@ class ExpressionParser {
     return rec;
   }
 
-  Pair<double, ExpressionUnits> _solveExpr(
-      Map map, Record<ExpressionUnits, int> rec, int curr_pos) {
-    Record<double, ExpressionUnits> values = Record();
-    var current_position = curr_pos;
-    for (var p in rec.record) {
-      print('key: ${p.key}, value: ${p.value}');
-    }
-    while (current_position < rec.len) {
-      if (rec.contains_after(ExpressionUnits.closeBrace, current_position) !=
-              null &&
-          rec.contains_after(ExpressionUnits.openBrace, current_position) !=
-              null &&
-          (rec.contains_after(ExpressionUnits.openBrace, current_position) ==
-                  current_position ||
-              rec.contains_after(ExpressionUnits.openBrace, current_position) ==
-                  current_position + 1)) {
-        print("im here!!!!!!!");
-        int? start =
-            rec.contains_after(ExpressionUnits.openBrace, current_position);
-        int? end =
-            rec.contains_after(ExpressionUnits.closeBrace, current_position);
-        print('start: $start! end: $end!');
-        var sub_rec = rec.get_sub_rec(start! + 1, end! + 1);
-        Pair<double, ExpressionUnits> sub_expr_result =
-            _solveExpr(map, sub_rec, current_position);
-        values.addPair(sub_expr_result);
-        current_position = end + 1;
+  // Pair<double, ExpressionUnits> _solveExpr(
+  //     Map map, Record<ExpressionUnits, int> rec, int curr_pos) {
+  //   Record<double, ExpressionUnits> values = Record();
+  //   var current_position = curr_pos;
+  //   for (var p in rec.record) {
+  //     print('key: ${p.key}, value: ${p.value}');
+  //   }
+  //   while (current_position < rec.len) {
+  //     if (rec.contains_after(ExpressionUnits.closeBrace, current_position) !=
+  //             null &&
+  //         rec.contains_after(ExpressionUnits.openBrace, current_position) !=
+  //             null &&
+  //         (rec.contains_after(ExpressionUnits.openBrace, current_position) ==
+  //                 current_position ||
+  //             rec.contains_after(ExpressionUnits.openBrace, current_position) ==
+  //                 current_position + 1)) {
+  //       print("im here!!!!!!!");
+  //       int? start =
+  //           rec.contains_after(ExpressionUnits.openBrace, current_position);
+  //       int? end =
+  //           rec.contains_after(ExpressionUnits.closeBrace, current_position);
+  //       print('start: $start! end: $end!');
+  //       var sub_rec = rec.get_sub_rec(start! + 1, end! + 1);
+  //       Pair<double, ExpressionUnits> sub_expr_result =
+  //           _solveExpr(map, sub_rec, current_position);
+  //       values.addPair(sub_expr_result);
+  //       current_position = end + 1;
+  //     }
+  //     values = _parseExprWithinBrace(rec, current_position, map);
+  //     if (rec.contains_after(ExpressionUnits.openBrace, current_position) !=
+  //         null) {
+  //       current_position =
+  //           rec.contains_after(ExpressionUnits.openBrace, current_position)!;
+  //     }
+  //     current_position = rec.len;
+  //   }
+  //   var value = _calculate(values);
+  //   return Pair(key: value, value: ExpressionUnits.none);
+  // }
+  List<Pair<Record<ExpressionUnits, int>, Pair<ExpressionUnits, int>>> parse(
+      Record<ExpressionUnits, int> rec) {
+    bool isOpened = false;
+    List<Pair<Record<ExpressionUnits, int>, Pair<ExpressionUnits, int>>>
+        parsed = [];
+    Record<ExpressionUnits, int> braced = Record();
+    rec.record.asMap().entries.map((e) {
+      if ((e.key == 0 && e.value.key != ExpressionUnits.openBrace) ||
+          (e.value.key == ExpressionUnits.openBrace && !isOpened)) {
+        braced.addPair(e.value);
+        isOpened = true;
+      } else if (e.value.key != ExpressionUnits.openBrace &&
+          e.value.key != ExpressionUnits.closeBrace &&
+          isOpened) {
+        braced.addPair(e.value);
+      } else if (e.key != 0 &&
+          e.value.key == ExpressionUnits.openBrace &&
+          isOpened) {
+        var unit = braced.record.removeLast();
+        parsed.add(Pair(key: braced, value: unit));
+        braced = Record();
+        isOpened = false;
+      } else if (e.value.key == ExpressionUnits.closeBrace) {
+        isOpened = false;
+        braced.addPair(e.value);
+      } else if (e.value.key != ExpressionUnits.closeBrace &&
+          e.value.key != ExpressionUnits.openBrace &&
+          !isOpened) {
+        parsed.add(Pair(key: braced, value: e.value));
+        braced = Record();
       }
-      values = _parseExprWithoutBrace(rec, current_position, map);
-      if (rec.contains_after(ExpressionUnits.openBrace, current_position) !=
-          null) {
-        current_position =
-            rec.contains_after(ExpressionUnits.openBrace, current_position)!;
-      }
-      current_position = rec.len;
-    }
-    var value = _calculate(values);
-    return Pair(key: value, value: ExpressionUnits.none);
+      return e;
+    }).toList();
+    return parsed;
   }
 
-  Record<double, ExpressionUnits> _parseExprWithoutBrace(
+  Record<double, ExpressionUnits> _parseExprWithinBrace(
       Record<ExpressionUnits, int> rec, int curr_pos, Map map) {
     Record<double, ExpressionUnits> parsed = Record();
     var prev_unit = ExpressionUnits.none;
