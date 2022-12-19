@@ -3,9 +3,8 @@ import 'dart:math';
 import 'package:hw1/hw1.dart';
 import 'package:hw1/record.dart';
 
-//Calculate number from list interpretation [1,2,3] -> 123.0
-double double_from_list(List<int> list) {
-  if (list.length == 0) return 0.0;
+double doubleFromList(List<int> list) {
+  if (list.isEmpty) return 0.0;
   return list
       .asMap()
       .entries
@@ -24,15 +23,15 @@ int findOpenBrace(Record<double, ExpressionUnits> rec, int index) {
   var braceCount = 1;
   while (braceCount > 0) {
     index--;
-    if (rec.get(index).value == ExpressionUnits.openBrace)
+    if (rec.get(index).value == ExpressionUnits.openBrace) {
       braceCount--;
-    else if (rec.get(index).value == ExpressionUnits.closeBrace) braceCount++;
+    } else if (rec.get(index).value == ExpressionUnits.closeBrace) {
+      braceCount++;
+    }
   }
-  // print('index = $index');
   return index;
 }
 
-//Takes Record and index of last elemt of expression or subexpression and returns index of last "+" or "-"
 int findPlusOrMinus(Record<double, ExpressionUnits> rec, int index) {
   var currElem = rec.get(index).value;
   while (currElem != ExpressionUnits.add && currElem != ExpressionUnits.sub) {
@@ -45,7 +44,6 @@ int findPlusOrMinus(Record<double, ExpressionUnits> rec, int index) {
   return index;
 }
 
-//Takes Record and index of last elemt of expression or subexpression and returns index of last "*" or "/"
 int findMulOrDiv(Record<double, ExpressionUnits> rec, int index) {
   var currElem = rec.get(index).value;
   while (currElem != ExpressionUnits.mul && currElem != ExpressionUnits.div) {
