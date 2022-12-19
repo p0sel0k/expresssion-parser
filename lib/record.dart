@@ -13,10 +13,10 @@ class Record<K, V> {
     return this;
   }
 
-  int? containsAfter(K elem, int curr_pos) {
+  int? containsAfter(K elem, int currPos) {
     int index = 0;
     for (var p in record) {
-      if (p.key == elem && index >= curr_pos) {
+      if (p.key == elem && index >= currPos) {
         return index;
       }
       index++;
