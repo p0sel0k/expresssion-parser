@@ -111,7 +111,7 @@ class ExpressionParser {
     return parsed;
   }
 
-  Record<double, ExpressionUnits> _parseExprWithinBrace(
+  Record<double, ExpressionUnits> _parseToSubExpr(
       Record<ExpressionUnits, int> rec, int curr_pos, Map map) {
     Record<double, ExpressionUnits> parsed = Record();
     var prev_unit = ExpressionUnits.none;
@@ -135,11 +135,11 @@ class ExpressionParser {
               prev_unit == ExpressionUnits.openBrace) {
             is_negative = true;
           } else {
+            constant_value = double_from_list(decimals);
             if (is_negative) {
               is_variable ? variable * (-1.0) : constant_value * (-1.0);
               is_negative = false;
             }
-            constant_value = double_from_list(decimals);
             is_variable
                 ? parsed
                     .addPair(Pair(key: variable, value: ExpressionUnits.sub))
@@ -157,11 +157,11 @@ class ExpressionParser {
           prev_unit = ExpressionUnits.constant;
           break;
         case ExpressionUnits.add:
+          constant_value = double_from_list(decimals);
           if (is_negative) {
             is_variable ? variable * (-1.0) : constant_value * (-1.0);
             is_negative = false;
           }
-          constant_value = double_from_list(decimals);
           is_variable
               ? parsed.addPair(Pair(key: variable, value: ExpressionUnits.add))
               : parsed.addPair(
