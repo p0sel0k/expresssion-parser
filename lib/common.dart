@@ -20,37 +20,40 @@ double double_from_list(List<int> list) {
 }
 
 //Takes Record and index of closing brace to find index of opening one
-int findOpenBrace(Record<ExpressionUnits, double> rec, int index) {
+int findOpenBrace(Record<double, ExpressionUnits> rec, int index) {
   var braceCount = 1;
   while (braceCount > 0) {
     index--;
-    if (rec.get(index).key == ExpressionUnits.openBrace)
+    if (rec.get(index).value == ExpressionUnits.openBrace)
       braceCount--;
-    else if (rec.get(index).key == ExpressionUnits.closeBrace) braceCount++;
+    else if (rec.get(index).value == ExpressionUnits.closeBrace) braceCount++;
   }
-  return 1;
+  // print('index = $index');
+  return index;
 }
 
-//Takes Record and index of last elemt of expression or subexpression and returns index of first "+" or "-"
-int findPlusOrMinus(Record<ExpressionUnits, double> rec, int index) {
-  var currElem = rec.get(index).key;
-  while (currElem != ExpressionUnits.add || currElem != ExpressionUnits.sub) {
+//Takes Record and index of last elemt of expression or subexpression and returns index of last "+" or "-"
+int findPlusOrMinus(Record<double, ExpressionUnits> rec, int index) {
+  var currElem = rec.get(index).value;
+  while (currElem != ExpressionUnits.add && currElem != ExpressionUnits.sub) {
     currElem == ExpressionUnits.closeBrace
         ? index = findOpenBrace(rec, index)
         : index--;
-    currElem = rec.get(index).key;
+    if (index == -1) return 0;
+    currElem = rec.get(index).value;
   }
-  return index + 1;
+  return index;
 }
 
-//Takes Record and index of last elemt of expression or subexpression and returns index of first "*" or "/"
-int findMulOrDiv(Record<ExpressionUnits, double> rec, int index) {
-  var currElem = rec.get(index).key;
-  while (currElem != ExpressionUnits.mul || currElem != ExpressionUnits.div) {
+//Takes Record and index of last elemt of expression or subexpression and returns index of last "*" or "/"
+int findMulOrDiv(Record<double, ExpressionUnits> rec, int index) {
+  var currElem = rec.get(index).value;
+  while (currElem != ExpressionUnits.mul && currElem != ExpressionUnits.div) {
     currElem == ExpressionUnits.closeBrace
         ? index = findOpenBrace(rec, index)
         : index--;
-    currElem = rec.get(index).key;
+    if (index == -1) return 0;
+    currElem = rec.get(index).value;
   }
-  return index + 1;
+  return index;
 }

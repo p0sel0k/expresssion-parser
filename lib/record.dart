@@ -13,7 +13,7 @@ class Record<K, V> {
     return this;
   }
 
-  int? contains_after(K elem, int curr_pos) {
+  int? containsAfter(K elem, int curr_pos) {
     int index = 0;
     for (var p in record) {
       if (p.key == elem && index >= curr_pos) {
@@ -24,14 +24,15 @@ class Record<K, V> {
     return null;
   }
 
-  Record<K, V> get_sub_rec(int start, int end) {
+  Record<K, V> getSubRec(int start, int end) {
     Record<K, V> rec = Record();
-    int index = 0;
-    for (var p in record) {
-      if (index >= start && index <= end) {
-        rec.addPair(p);
-      }
-    }
+    rec = Record.fromList(record.getRange(start, end).toList());
+    // int index = 0;
+    // for (var p in record) {
+    //   if (index >= start && index <= end) {
+    //     rec.addPair(p);
+    //   }
+    // }
     return rec;
   }
 
