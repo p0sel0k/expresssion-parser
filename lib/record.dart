@@ -1,14 +1,16 @@
 class Record<K, V> {
-  final List<Pair<K, V>> record = [];
+  final List<Pair<K, V>> record;
 
-  Record();
+  Record() : record = [];
+  Record.fromList(this.record);
 
   void add({required K key, required V val}) {
     record.add(Pair(key: key, value: val));
   }
 
-  void addPair(Pair<K, V> pair) {
+  Record<K, V> addPair(Pair<K, V> pair) {
     record.add(pair);
+    return this;
   }
 
   int? contains_after(K elem, int curr_pos) {

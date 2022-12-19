@@ -2,6 +2,8 @@ import 'dart:math';
 
 import 'package:hw1/record.dart';
 
+import 'common.dart';
+
 enum ExpressionUnits {
   add,
   sub,
@@ -17,14 +19,14 @@ enum ExpressionUnits {
 
 class ExpressionParser {
   final String expression;
-  final Map variables;
+  final Map<String, double> variables;
 
   ExpressionParser({required this.expression, required this.variables});
 
   double result() {
     var rec = _parseRecieved(expression);
+    var expr = _asUnitsExpression(rec, variables);
     return 0.0;
-    // _solveExpr(variables, rec, 0).key;
   }
 
   Record<ExpressionUnits, int> _parseRecieved(String recieved) {
@@ -36,83 +38,8 @@ class ExpressionParser {
     return rec;
   }
 
-  // Pair<double, ExpressionUnits> _solveExpr(
-  //     Map map, Record<ExpressionUnits, int> rec, int curr_pos) {
-  //   Record<double, ExpressionUnits> values = Record();
-  //   var current_position = curr_pos;
-  //   for (var p in rec.record) {
-  //     print('key: ${p.key}, value: ${p.value}');
-  //   }
-  //   while (current_position < rec.len) {
-  //     if (rec.contains_after(ExpressionUnits.closeBrace, current_position) !=
-  //             null &&
-  //         rec.contains_after(ExpressionUnits.openBrace, current_position) !=
-  //             null &&
-  //         (rec.contains_after(ExpressionUnits.openBrace, current_position) ==
-  //                 current_position ||
-  //             rec.contains_after(ExpressionUnits.openBrace, current_position) ==
-  //                 current_position + 1)) {
-  //       print("im here!!!!!!!");
-  //       int? start =
-  //           rec.contains_after(ExpressionUnits.openBrace, current_position);
-  //       int? end =
-  //           rec.contains_after(ExpressionUnits.closeBrace, current_position);
-  //       print('start: $start! end: $end!');
-  //       var sub_rec = rec.get_sub_rec(start! + 1, end! + 1);
-  //       Pair<double, ExpressionUnits> sub_expr_result =
-  //           _solveExpr(map, sub_rec, current_position);
-  //       values.addPair(sub_expr_result);
-  //       current_position = end + 1;
-  //     }
-  //     values = _parseExprWithinBrace(rec, current_position, map);
-  //     if (rec.contains_after(ExpressionUnits.openBrace, current_position) !=
-  //         null) {
-  //       current_position =
-  //           rec.contains_after(ExpressionUnits.openBrace, current_position)!;
-  //     }
-  //     current_position = rec.len;
-  //   }
-  //   var value = _calculate(values);
-  //   return Pair(key: value, value: ExpressionUnits.none);
-  // }
-  List<Pair<Record<ExpressionUnits, int>, Pair<ExpressionUnits, int>>> parse(
-      Record<ExpressionUnits, int> rec) {
-    bool isOpened = false;
-    List<Pair<Record<ExpressionUnits, int>, Pair<ExpressionUnits, int>>>
-        parsed = [];
-    Record<ExpressionUnits, int> braced = Record();
-    rec.record.asMap().entries.map((e) {
-      if ((e.key == 0 && e.value.key != ExpressionUnits.openBrace) ||
-          (e.value.key == ExpressionUnits.openBrace && !isOpened)) {
-        braced.addPair(e.value);
-        isOpened = true;
-      } else if (e.value.key != ExpressionUnits.openBrace &&
-          e.value.key != ExpressionUnits.closeBrace &&
-          isOpened) {
-        braced.addPair(e.value);
-      } else if (e.key != 0 &&
-          e.value.key == ExpressionUnits.openBrace &&
-          isOpened) {
-        var unit = braced.record.removeLast();
-        parsed.add(Pair(key: braced, value: unit));
-        braced = Record();
-        isOpened = false;
-      } else if (e.value.key == ExpressionUnits.closeBrace) {
-        isOpened = false;
-        braced.addPair(e.value);
-      } else if (e.value.key != ExpressionUnits.closeBrace &&
-          e.value.key != ExpressionUnits.openBrace &&
-          !isOpened) {
-        parsed.add(Pair(key: braced, value: e.value));
-        braced = Record();
-      }
-      return e;
-    }).toList();
-    return parsed;
-  }
-
-  Record<double, ExpressionUnits> _parseToSubExpr(
-      Record<ExpressionUnits, int> rec, int curr_pos, Map map) {
+  Record<double, ExpressionUnits> _asUnitsExpression(
+      Record<ExpressionUnits, int> rec, Map<String, double> map) {
     Record<double, ExpressionUnits> parsed = Record();
     var prev_unit = ExpressionUnits.none;
     bool is_negative = false;
@@ -121,30 +48,36 @@ class ExpressionParser {
     double constant_value = 0;
     double variable = 0;
 
-    var closeBrace = rec.contains_after(ExpressionUnits.closeBrace, curr_pos);
-    var parseEnd = closeBrace != null ? closeBrace + 2 : rec.len;
-    for (var i = curr_pos; i < parseEnd; i++) {
-      print("step: $i");
+    for (var i = 0; i < rec.len; i++) {
       var p = rec.get(i);
       switch (p.key) {
         case ExpressionUnits.openBrace:
           prev_unit = ExpressionUnits.openBrace;
+          parsed.addPair(
+              Pair(key: p.value.toDouble(), value: ExpressionUnits.openBrace));
           break;
         case ExpressionUnits.sub:
           if (prev_unit == ExpressionUnits.none ||
               prev_unit == ExpressionUnits.openBrace) {
             is_negative = true;
+            print("negative");
           } else {
             constant_value = double_from_list(decimals);
             if (is_negative) {
-              is_variable ? variable * (-1.0) : constant_value * (-1.0);
+              is_variable ? variable *= (-1.0) : constant_value *= (-1.0);
               is_negative = false;
             }
             is_variable
                 ? parsed
-                    .addPair(Pair(key: variable, value: ExpressionUnits.sub))
-                : parsed.addPair(
-                    Pair(key: constant_value, value: ExpressionUnits.sub));
+                    .addPair(
+                        Pair(key: variable, value: ExpressionUnits.variable))
+                    .addPair(Pair(
+                        key: p.value.toDouble(), value: ExpressionUnits.sub))
+                : parsed
+                    .addPair(Pair(
+                        key: constant_value, value: ExpressionUnits.constant))
+                    .addPair(Pair(
+                        key: p.value.toDouble(), value: ExpressionUnits.sub));
             decimals = [];
             is_variable = false;
           }
@@ -152,77 +85,108 @@ class ExpressionParser {
           break;
         case ExpressionUnits.constant:
           // constant_value += p.value * pow(10.0, decimals);
-          print("list len: ${decimals.length} value: ${p.value}");
+          print("list len: ${decimals.length + 1} value: ${p.value}");
           decimals.add(p.value);
           prev_unit = ExpressionUnits.constant;
           break;
         case ExpressionUnits.add:
           constant_value = double_from_list(decimals);
           if (is_negative) {
-            is_variable ? variable * (-1.0) : constant_value * (-1.0);
+            is_variable ? variable *= (-1.0) : constant_value *= (-1.0);
             is_negative = false;
           }
           is_variable
-              ? parsed.addPair(Pair(key: variable, value: ExpressionUnits.add))
-              : parsed.addPair(
-                  Pair(key: constant_value, value: ExpressionUnits.add));
+              ? parsed
+                  .addPair(Pair(key: variable, value: ExpressionUnits.variable))
+                  .addPair(
+                      Pair(key: p.value.toDouble(), value: ExpressionUnits.add))
+              : parsed
+                  .addPair(Pair(
+                      key: constant_value, value: ExpressionUnits.constant))
+                  .addPair(Pair(
+                      key: p.value.toDouble(), value: ExpressionUnits.add));
           decimals = [];
           is_variable = false;
           break;
         case ExpressionUnits.mul:
+          constant_value = double_from_list(decimals);
           if (is_negative) {
-            is_variable ? variable * (-1.0) : constant_value * (-1.0);
+            is_variable ? variable *= (-1.0) : constant_value *= (-1.0);
             is_negative = false;
           }
-          constant_value = double_from_list(decimals);
           is_variable
-              ? parsed.addPair(Pair(key: variable, value: ExpressionUnits.mul))
-              : parsed.addPair(
-                  Pair(key: constant_value, value: ExpressionUnits.mul));
+              ? parsed
+                  .addPair(Pair(key: variable, value: ExpressionUnits.variable))
+                  .addPair(
+                      Pair(key: p.value.toDouble(), value: ExpressionUnits.mul))
+              : parsed
+                  .addPair(Pair(
+                      key: constant_value, value: ExpressionUnits.constant))
+                  .addPair(Pair(
+                      key: p.value.toDouble(), value: ExpressionUnits.mul));
           decimals = [];
           is_variable = false;
           break;
         case ExpressionUnits.div:
+          constant_value = double_from_list(decimals);
           if (is_negative) {
-            is_variable ? variable * (-1.0) : constant_value * (-1.0);
+            is_variable ? variable *= (-1.0) : constant_value *= (-1.0);
             is_negative = false;
           }
-          constant_value = double_from_list(decimals);
           is_variable
-              ? parsed.addPair(Pair(key: variable, value: ExpressionUnits.div))
-              : parsed.addPair(
-                  Pair(key: constant_value, value: ExpressionUnits.div));
+              ? parsed
+                  .addPair(Pair(key: variable, value: ExpressionUnits.variable))
+                  .addPair(
+                      Pair(key: p.value.toDouble(), value: ExpressionUnits.div))
+              : parsed
+                  .addPair(Pair(
+                      key: constant_value, value: ExpressionUnits.constant))
+                  .addPair(Pair(
+                      key: p.value.toDouble(), value: ExpressionUnits.div));
           decimals = [];
           is_variable = false;
           break;
         case ExpressionUnits.variable:
-          variable = map[String.fromCharCode(p.value)];
+          variable = map[String.fromCharCode(p.value)]!;
           is_variable = true;
           break;
         case ExpressionUnits.closeBrace:
+          constant_value = double_from_list(decimals);
           if (is_negative) {
-            is_variable ? variable * (-1.0) : constant_value * (-1.0);
+            is_variable ? variable *= (-1.0) : constant_value *= (-1.0);
             is_negative = false;
           }
-          constant_value = double_from_list(decimals);
           is_variable
-              ? parsed.addPair(
-                  Pair(key: variable, value: ExpressionUnits.closeBrace))
-              : parsed.addPair(
-                  Pair(key: constant_value, value: ExpressionUnits.closeBrace));
+              ? parsed
+                  .addPair(Pair(key: variable, value: ExpressionUnits.variable))
+                  .addPair(Pair(
+                      key: p.value.toDouble(),
+                      value: ExpressionUnits.closeBrace))
+              : parsed
+                  .addPair(Pair(
+                      key: constant_value, value: ExpressionUnits.constant))
+                  .addPair(Pair(
+                      key: p.value.toDouble(),
+                      value: ExpressionUnits.closeBrace));
           decimals = [];
           is_variable = false;
           break;
         case ExpressionUnits.none:
+          constant_value = double_from_list(decimals);
           if (is_negative) {
-            is_variable ? variable * (-1.0) : constant_value * (-1.0);
+            is_variable ? variable *= (-1.0) : constant_value *= (-1.0);
             is_negative = false;
           }
-          constant_value = double_from_list(decimals);
           is_variable
-              ? parsed.addPair(Pair(key: variable, value: ExpressionUnits.none))
-              : parsed.addPair(
-                  Pair(key: constant_value, value: ExpressionUnits.none));
+              ? parsed
+                  .addPair(Pair(key: variable, value: ExpressionUnits.variable))
+                  .addPair(Pair(
+                      key: p.value.toDouble(), value: ExpressionUnits.none))
+              : parsed
+                  .addPair(Pair(
+                      key: constant_value, value: ExpressionUnits.constant))
+                  .addPair(Pair(
+                      key: p.value.toDouble(), value: ExpressionUnits.none));
           decimals = [];
           is_variable = false;
           break;
@@ -268,19 +232,4 @@ class ExpressionParser {
         return res;
     }
   }
-}
-
-double double_from_list(List<int> list) {
-  if (list.length == 0) return 0.0;
-  return list
-      .asMap()
-      .entries
-      .map((e) {
-        int index = e.key;
-        int val = e.value;
-        return val * pow(10.0, (list.length - index - 1));
-      })
-      .toList()
-      .reduce((value, element) => value + element)
-      .toDouble();
 }
