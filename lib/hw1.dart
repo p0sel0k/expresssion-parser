@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:hw1/record.dart';
 
 import 'common.dart';
@@ -17,11 +15,11 @@ enum ExpressionUnits {
   closeBrace,
 }
 
-class ExpressionParser {
+class Calculator {
   final String expression;
-  final Map<String, double> variables;
+  Map<String, double>? variables = {};
 
-  ExpressionParser({required this.expression, required this.variables});
+  Calculator({required this.expression, this.variables});
 
   double result() {
     var rec = _parseRecieved(expression);
@@ -79,7 +77,7 @@ class ExpressionParser {
   }
 
   Record<double, ExpressionUnits> _asUnitsExpression(
-      Record<ExpressionUnits, int> rec, Map<String, double> map) {
+      Record<ExpressionUnits, int> rec, Map<String, double>? map) {
     Record<double, ExpressionUnits> parsed = Record();
     var prevUnit = ExpressionUnits.none;
     bool isNegative = false;
@@ -129,8 +127,6 @@ class ExpressionParser {
           prevUnit = ExpressionUnits.sub;
           break;
         case ExpressionUnits.constant:
-          // constant_value += p.value * pow(10.0, decimals);
-          // print("list len: ${decimals.length + 1} value: ${p.value}");
           decimals.add(p.value);
           prevUnit = ExpressionUnits.constant;
           break;
@@ -207,7 +203,7 @@ class ExpressionParser {
           prevUnit = ExpressionUnits.mul;
           break;
         case ExpressionUnits.variable:
-          variable = map[String.fromCharCode(p.value)]!;
+          variable = map![String.fromCharCode(p.value)]!;
           isVariable = true;
           prevUnit = ExpressionUnits.variable;
           break;

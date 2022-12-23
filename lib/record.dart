@@ -27,12 +27,6 @@ class Record<K, V> {
   Record<K, V> getSubRec(int start, int end) {
     Record<K, V> rec = Record();
     rec = Record.fromList(record.getRange(start, end).toList());
-    // int index = 0;
-    // for (var p in record) {
-    //   if (index >= start && index <= end) {
-    //     rec.addPair(p);
-    //   }
-    // }
     return rec;
   }
 
